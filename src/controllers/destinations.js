@@ -40,3 +40,15 @@ exports.createDest = (req, res, next) => {
         console.log('Err: ', err)
     });
 };
+exports.getAllDest = (req, res, next) => {
+    Destination.find()
+    .then(result => {
+        res.status(200).json({
+            message: 'Get Data Destination, Success ✅',
+            data: result
+        })
+    })
+    .catch(err => {
+        next(err);
+    })
+}

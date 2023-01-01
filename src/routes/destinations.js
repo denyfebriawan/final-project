@@ -15,4 +15,5 @@ router.post(
   destController.createDest
 );
 
+router.get("/posts", destController.getAllDest)
 module.exports = router;
