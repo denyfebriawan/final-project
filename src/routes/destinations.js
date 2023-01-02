@@ -20,4 +20,8 @@ router.put('/post/:postId', [
   body("description").isLength({ min: 5 }).withMessage('Input description tidak sesuai')
 ],
 destController.updateDest);
+router.delete('/post/:postId', destController.deleteDest);
+
+
+
 module.exports = router;

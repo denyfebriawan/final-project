@@ -1,4 +1,6 @@
 const {validationResult} = require('express-validator');
+const path = require('path');
+const fs = require('fs');
 const Destination = require('../models/destination');
 
 
@@ -40,13 +42,28 @@ exports.createDest = (req, res, next) => {
     });
 };
 exports.getAllDest = (req, res, next) => {
-    Destination.find()
-    .then(result => {
+    // memberikan default value 1 (in case unfilled from user)
+    const currentPage = req.query.page || 1;
+    const perPage = req.query.perPage || 5;
+    let totalItems;
+
+    Destination.find().countDocuments()
+    .then(count=>{
+        // For pagination and item per page
+        totalItems = count;
+        return Destination.find()
+        .skip((parseInt(currentPage) - 1) * parseInt(perPage))
+        .limit(parseInt(perPage));
+    })
+    .then(result => [
         res.status(200).json({
             message: 'Get All Data Destination, Success ✅',
-            data: result
+            data: result,
+            total_data: totalItems,
+            per_page: perPage,
+            current_page: currentPage
         })
-    })
+    ])
     .catch(err => {
         next(err);
     })
@@ -112,3 +129,35 @@ exports.updateDest = (req, res, next) => {
         next(err)
     });
 };
+exports.deleteDest = (req, res, next) => {
+    const postId = req.params.postId;
+
+    Destination.findById(postId)
+    .then(post => {
+        if(!post){
+            const error = new Error('Destinasi tidak ditemukan!');
+            error.errorStatus = 404;
+            throw error;
+        }
+        // fungsi dibawa 👇🏼
+        removeImage(post.image);
+        return Destination.findByIdAndRemove(postId);
+    })
+    .then(result => {
+        res.status(200).json({
+            message:'Delete berhasil',
+            data: result
+        })
+    })
+    .catch(err => {
+        next(err);
+    })
+};
+
+const removeImage = (filePath) => {
+    console.log('filePath', filePath);
+    // Untuk menemukan path direktori image
+    filePath = path.join(__dirname,'../..', filePath)
+    // Remove image
+    fs.unlink(filePath, err => console.log(err));
+}
